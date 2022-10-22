@@ -75,6 +75,8 @@ void writeToJogOutput(const JogOutput& out)
 
 }
 
+bool logToSerial = false;
+
 
 void setup()
 {
@@ -100,6 +102,7 @@ void setup()
   // while (Serial.read() == -1);
 
   Serial.println(F("Starting Pendant joystick controller emulation"));
+  Serial.println(F("Enter any key to log readings here."));
   Serial.println();
 }
 
@@ -112,7 +115,10 @@ void loop()
     auto status = GamecubeController.getStatus();
     auto report = GamecubeController.getReport();
     convertGCtoJOgOut(report, status);
-    print_gc_report(report, status);
+    if(Serial.available() > 0)
+      logToSerial = true;
+    if(logToSerial)
+      print_gc_report(report, status);
 
     // Rumble if button "A" was pressed
     // if (report.a) {
