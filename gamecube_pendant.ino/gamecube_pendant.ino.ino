@@ -17,17 +17,29 @@ Code bases of  GamecubeController example by
 
 #include "Nintendo.h"
 // Pin definitions
-#define pinLed LED_BUILTIN
-#define pinController 7
-#define pinAnalogSpeedOut 2
-#define pinAminus 22
-#define pinAplus 23
-#define pinZminus 24
-#define pinZplus 25
-#define pinYminus 26
-#define pinYplus 27
-#define pinXminus 28
-#define pinXplus 29
+#define pinAminus 2
+#define pinAplus 3
+#define pinZminus 4
+#define pinZplus 5
+#define pinYminus 6
+#define pinYplus 7
+#define pinXminus 8
+#define pinXplus 9
+#define pinAnalogSpeedOut 10
+
+#define pinController 13
+
+//MEGA:
+//#define pinController 7
+//#define pinAnalogSpeedOut 2
+//#define pinAminus 22
+//#define pinAplus 23
+//#define pinZminus 24
+//#define pinZplus 25
+//#define pinYminus 26
+//#define pinYplus 27
+//#define pinXminus 28
+//#define pinXplus 29
 
 
 
@@ -66,9 +78,7 @@ void wtiteToJogOutput(const JogOutput& out)
 void setup()
 {
   // Set up PINS
-  pinMode(pinLed, OUTPUT);
   pinMode(pinAnalogSpeedOut, OUTPUT);
-  pinMode(pinLed, OUTPUT);
   pinMode(pinAminus,OUTPUT);
   pinMode(pinAplus,OUTPUT);
   pinMode(pinZminus,OUTPUT);
@@ -116,24 +126,58 @@ void loop()
   {
     // Add debounce if reading failed
     Serial.println(F("Error reading Gamecube controller."));
-    digitalWrite(pinLed, HIGH);
     delay(1000);
   }
-  digitalWrite(pinLed, LOW);
 }
 
 void convertGCtoJOgOut(Gamecube_Report_t &gc_report, Gamecube_Status_t &gc_status)
 {
   static JogOutput theJogOutput;
-  theJogOutput.speed = gc_report.right-20;
-  theJogOutput.x_minus = gc_report.dleft;
-  theJogOutput.x_plus = gc_report.dright;
-  theJogOutput.y_minus = gc_report.dup;
-  theJogOutput.y_plus = gc_report.ddown;
-  theJogOutput.z_plus = (gc_report.cyAxis > 200);
-  theJogOutput.z_minus = (gc_report.cyAxis < 100);
-  theJogOutput.a_plus = (gc_report.cxAxis > 200);
-  theJogOutput.a_minus = (gc_report.cxAxis < 100);
+
+  //Trigger that is more pressed gets picked
+  if(gc_report.right > gc_report.left)
+  {
+  // Set max speed if R pressed
+  if(gc_report.r)
+    theJogOutput.speed = 255;
+    else
+     theJogOutput.speed = gc_report.right;
+  }
+  else
+  {//The more you press L, the slower!
+
+  if(gc_report.l)
+    theJogOutput.speed = 1;
+    else
+    {
+     uint8_t left = gc_report.left;
+     if(left < 30)
+      left = 30;
+      else if (left > 200)
+        left = 200;
+     left -=30; // now left is between 0 and 170;
+     left /=5; // now left is between 0 and 34
+     theJogOutput.speed = 35-left;
+    }
+    
+  }
+
+
+  //One needs to press a button to move an axis.  x,y,z -> x,y,zAxis   b -> aAxis, Pressing A enables all axes
+  //note that we don't use A for axis A because it is a big confortable button, and has a better layout.
+  
+  theJogOutput.x_minus = (gc_report.a || gc_report.x)  && (gc_report.dleft  || (gc_report.xAxis < 100));
+  theJogOutput.x_plus = (gc_report.a || gc_report.x) && (gc_report.dright || (gc_report.xAxis > 200));
+  
+  theJogOutput.y_minus = (gc_report.a || gc_report.y)&& (gc_report.ddown || (gc_report.yAxis < 100));
+  theJogOutput.y_plus = (gc_report.a || gc_report.y)&& (gc_report.dup || (gc_report.yAxis > 200));
+  
+  theJogOutput.z_plus = (gc_report.a || gc_report.z)&& (gc_report.cyAxis > 200);
+  theJogOutput.z_minus = (gc_report.a || gc_report.z)&& (gc_report.cyAxis < 100);
+  
+  theJogOutput.a_plus = (gc_report.a || gc_report.b)&& (gc_report.cxAxis > 200);
+  theJogOutput.a_minus = (gc_report.a || gc_report.b)&& (gc_report.cxAxis < 100);
+  
   wtiteToJogOutput(theJogOutput);
 
 }
@@ -168,37 +212,37 @@ void print_gc_report(Gamecube_Report_t &gc_report, Gamecube_Status_t &gc_status)
   // Serial.println(F("Printing Gamecube controller report:"));
 
 
-  // Serial.print(F("Start:"));
-  // Serial.print(gc_report.start);
-  // Serial.println(",");
+ Serial.print(F("Start:"));
+ Serial.print(gc_report.start);
+ Serial.println(",");
 
-  // Serial.print(F("Y:"));
-  // Serial.print(gc_report.y);
-  // Serial.println(",");
+ Serial.print(F("Y:"));
+ Serial.print(gc_report.y);
+ Serial.println(",");
 
-  // Serial.print(F("X:"));
-  // Serial.print(gc_report.x);
-  // Serial.println(",");
+ Serial.print(F("X:"));
+ Serial.print(gc_report.x);
+ Serial.println(",");
 
-  // Serial.print(F("B:"));
-  // Serial.print(gc_report.b);
-  // Serial.println(",");
+ Serial.print(F("B:"));
+ Serial.print(gc_report.b);
+ Serial.println(",");
 
-  // Serial.print(F("A:"));
-  // Serial.print(gc_report.a);
-  // Serial.println(",");
+ Serial.print(F("A:"));
+ Serial.print(gc_report.a);
+ Serial.println(",");
 
-  // Serial.print(F("LL:"));
-  // Serial.print(gc_report.l);
-  // Serial.println(",");
+ Serial.print(F("LL:"));
+ Serial.print(gc_report.l);
+ Serial.println(",");
 
-  // Serial.print(F("RR:"));
-  // Serial.print(gc_report.r);
-  // Serial.println(",");
-    
-  // Serial.print(F("Z:"));
-  // Serial.print(gc_report.z);
-  // Serial.println(",");
+ Serial.print(F("RR:"));
+ Serial.print(gc_report.r);
+ Serial.println(",");
+  
+ Serial.print(F("Z:"));
+ Serial.print(gc_report.z);
+ Serial.println(",");
 
   Serial.print(F("Dup:"));
   Serial.print(gc_report.dup);
