@@ -58,8 +58,9 @@ struct JogOutput
   bool a_plus = 0;
   bool a_minus = 0;
 };
+JogOutput NoMotion;
 
-void wtiteToJogOutput(const JogOutput& out)
+void writeToJogOutput(const JogOutput& out)
 {
   //Analog speed is inverted!:
   analogWrite(pinAnalogSpeedOut, 255-out.speed);
@@ -126,6 +127,7 @@ void loop()
   {
     // Add debounce if reading failed
     Serial.println(F("Error reading Gamecube controller."));
+    writeToJogOutput(NoMotion);
     delay(1000);
   }
 }
@@ -178,7 +180,7 @@ void convertGCtoJOgOut(Gamecube_Report_t &gc_report, Gamecube_Status_t &gc_statu
   theJogOutput.a_plus = (gc_report.a || gc_report.b)&& (gc_report.cxAxis > 200);
   theJogOutput.a_minus = (gc_report.a || gc_report.b)&& (gc_report.cxAxis < 100);
   
-  wtiteToJogOutput(theJogOutput);
+  writeToJogOutput(theJogOutput);
 
 }
 
