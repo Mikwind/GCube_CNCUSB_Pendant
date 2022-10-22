@@ -104,6 +104,7 @@ void setup()
   Serial.println(F("Starting Pendant joystick controller emulation"));
   Serial.println(F("Enter any key to log readings here."));
   Serial.println();
+  delay(100);
 }
 
 void loop()
