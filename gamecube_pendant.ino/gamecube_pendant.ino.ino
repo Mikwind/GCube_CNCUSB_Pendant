@@ -113,7 +113,6 @@ void loop()
     auto report = GamecubeController.getReport();
     convertGCtoJOgOut(report, status);
     print_gc_report(report, status);
-    delay(50);
 
     // Rumble if button "A" was pressed
     // if (report.a) {
